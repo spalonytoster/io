@@ -1,1 +1,2 @@
-data <- read.csv('./labirynth.csv', header = TRUE, sep = ',') 
+data <- read.csv('./labirynth.csv', header = FALSE, sep = ',')
+print(data[2,2])
