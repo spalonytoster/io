@@ -1,47 +1,31 @@
 library(genalg);
+data <- read.csv('./formula1.csv', header = FALSE, sep = ',');
 
 fitnessFunction <- function(chromosome) {
   result <- 0;
-  x1 <- chromosome[1];
-  x2 <- chromosome[2];
-  x3 <- chromosome[3];
-  x4 <- chromosome[4];
+  chromosomeSize <- NROW(chromosome);
 
-  # 1st condition
-  if (!x1 | x2 | x4) {
-    result <- result - 1;
+  for (i in 1:nrow(data)) {
+    conditions <- c(NULL, NULL, NULL);
+    for (j in 1:3) {
+      value <- data[i,j];
+      if (value > 0) {
+        condition <- 1;
+      }
+      else if (value < 0) {
+        condition <- 0;
+      }
+      else {
+        # err
+        break;
+      }
+      conditions[j] <- condition;
+    }
+    # c(0,1,1)
+
   }
 
-  # 2nd condition
-  if (!x2 | x3 | x4) {
-    result <- result - 1;
-  }
-
-  # 3rd condition
-  if (x1 | !x3 | x4) {
-    result <- result - 1;
-  }
-
-  # 4th condition
-  if (x1 | !x2 | !x4) {
-    result <- result - 1;
-  }
-
-  # 5th condition
-  if (x2 | !x3 | !x4) {
-    result <- result - 1;
-  }
-
-  # 6th condition
-  if (!x1 | x3 | !x4) {
-    result <- result - 1;
-  }
-
-  # 7th condition
-  if (x1 | x2 | x3) {
-    result <- result - 1;
-  }
-  # print(result);
+  print(result);
   return(result);
 };
 
