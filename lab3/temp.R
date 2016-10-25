@@ -1,4 +1,4 @@
-library(genalg)
+library(genalg);
 
 dataset <- data.frame(
   item = c(
