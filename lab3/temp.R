@@ -28,13 +28,15 @@ fitnessFunc <- function(x) {
   }
 };
 
-GAmodel <- rbga.bin(
-  size = 7,
-  popSize = 200,
-  iters = 100,
-  mutationChance = 0.01,
-  elitism = T,
-  evalFunc = fitnessFunc
+system.time(
+  GAmodel <- rbga.bin(
+    size = 7,
+    popSize = 200,
+    iters = 100,
+    mutationChance = 0.01,
+    elitism = T,
+    evalFunc = fitnessFunc
+  )
 );
 
 iter<-100;

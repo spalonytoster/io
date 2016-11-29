@@ -1,4 +1,4 @@
-library(genalg)
+library(genalg);
 
 data <- read.csv('./labirynth.csv', header = FALSE, sep = ',');
 startingPoint <- c(2,2);
@@ -9,11 +9,11 @@ sizeX <- ncol(data); sizeY <- nrow(data);
 
 interpretSingleMove <- function(currentCoords, moveCode) {
   result <- currentCoords;
-  if (moveCode[1] == 1 & moveCode[2] == 1) {
+  if (moveCode[1] == 0 & moveCode[2] == 0) {
     # print('UP');
     result[2] <- result[2] - 1;
   }
-  else if (moveCode[1] == 0 & moveCode[2] == 0) {
+  else if (moveCode[1] == 1 & moveCode[2] == 1) {
     # print('DOWN');
     result[2] <- result[2] + 1;
   }
@@ -48,31 +48,30 @@ fitnessFunction <- function(chromosome) {
     coords <- interpretSingleMove(positionCoords, c(chromosome[i], chromosome[i+1]));
     coordsValue <- data[coords[2],coords[1]];
     if (coordsValue != '_' & coordsValue != 'X') {
-      dist <- -calculateDistance(startingPoint, positionCoords);
-      # print(dist);
+      dist <- calculateDistance(coords, endingPoint);
+      print(dist);
       return(dist);
     }
     positionCoords <- coords;
     positionValue <- coordsValue;
   }
-  dist <- -calculateDistance(startingPoint, positionCoords);
-  # print(dist);
-  return();
+  dist <- 0;
+  print(positionCoords);
+  return(dist);
 };
 
 # solution
-# chromosome <- c(0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,1,0,0);
-# chromosome <- c(0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0);
-# fitnessFunction(chromosome);
+chromosome <- c(0,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,0,0,1,0,1,1,1);
+chromosome <- c(0,1,0,1,0,1,1,1,0,1,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1);
+fitnessFunction(chromosome);
 
 GAmodel <- rbga.bin(
   size = 30,
-  popSize = 50000,
-  iters = 5,
+  popSize = 200,
+  iters = 1000,
   mutationChance = 0.01,
   elitism = T,
   evalFunc = fitnessFunction
-  # ,verbose = TRUE
 );
 
 summary(GAmodel, echo=TRUE);
