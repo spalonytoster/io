@@ -8,6 +8,8 @@ dirty.filtered <- subset(dirty.iris, is.finite(dirty.iris$Sepal.Length) & is.fin
 nrow(dirty.filtered)
 # [1] 95
 
+E <- editfile("edits.txt")
+
 ve <- violatedEdits(E, dirty.iris)
 summary(ve)
 plot(ve)
