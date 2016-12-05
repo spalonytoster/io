@@ -1,0 +1,16 @@
+{
+  "uploadOnSave": true,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "hostname": "sigma.ug.edu.pl",
+  "port": "22",
+  "target": "/home/studinf/mposluszny/work/io",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "mposluszny",
+  "password": "toster789",
+  "watch": [],
+  "transport": "scp"
+}
