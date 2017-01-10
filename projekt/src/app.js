@@ -38,8 +38,13 @@ class Maze {
       }
       this.cells.push(row);
     }
+    this.numberOfCells =
+
+    this.stack = [];
     this.current = this.cells[0][0];
     this.current.visited = true;
+    this.current.isCurrent = true;
+    this.stack.push(this.current);
   }
 
   getCurrentNeighbours() {
@@ -74,13 +79,47 @@ class Maze {
   moveToNext() {
     let availableCells = this.getCurrentUnvisitedNeighbours();
     if (availableCells.length === 0) {
-      // TODO: handle that shit
-      return false;
+      this.current = this.stack.pop();
+      return;
     }
     let index = floor(random(0, availableCells.length));
-    this.current = availableCells[index];
+    let nextCell = availableCells[index];
+
+    this.removeWallsBetween(this.current, nextCell);
+    this.current.isCurrent = false;
+    nextCell.isCurrent = true;
+    this.stack.push(this.current);
+
+    this.current = nextCell;
     this.current.visited = true;
     return this.current;
+  }
+
+  removeWallsBetween(first, second) {
+    let horizontalDirection = first.x - second.x;
+    let verticalDirection;
+
+    if (horizontalDirection) {
+      if (horizontalDirection === -1) {
+        first.walls.right = false;
+        second.walls.left = false;
+      }
+      else {
+        first.walls.left = false;
+        second.walls.right = false;
+      }
+    }
+    else {
+      verticalDirection = first.y - second.y;
+      if (verticalDirection === -1) {
+        first.walls.bottom = false;
+        second.walls.top = false;
+      }
+      else {
+        first.walls.top = false;
+        second.walls.bottom = false;
+      }
+    }
   }
 }
 
@@ -95,7 +134,6 @@ class Cell {
       bottom: true,
       left: true
     };
-    this.visited = false;
   }
 
   show() {
@@ -118,6 +156,7 @@ class Cell {
     }
 
     if (this.visited) {
+      noStroke();
       fill(255, 0, 255, 100);
       rect(x, y, size, size);
     }
