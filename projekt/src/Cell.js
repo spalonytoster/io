@@ -11,9 +11,13 @@ class Cell {
       bottom: true,
       left: true
     };
+
+    // A star properties
+    this.gScore = Infinity;
+    this.fScore = Infinity;
   }
 
-  show() {
+  show(color) {
     let size = this.size;
     let x = this.x * size;
     let y = this.y * size;
@@ -35,6 +39,12 @@ class Cell {
     if (this.visited) {
       noStroke();
       fill(255, 0, 255, 100);
+      rect(x, y, size, size);
+    }
+
+    if (color) {
+      noStroke();
+      fill.call(this, color);
       rect(x, y, size, size);
     }
 

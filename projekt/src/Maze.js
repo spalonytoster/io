@@ -25,8 +25,10 @@ class Maze {
     this.stack.push(this.current);
   }
 
-  getCurrentNeighbours() {
-    let cell = this.current;
+  getNeighbours(cell) {
+    if (!cell) {
+      cell = this.current;
+    }
     let neighbours = [];
     if (cell.x > 0) {
       neighbours.push(this.cells[cell.y][cell.x-1]);
@@ -45,13 +47,24 @@ class Maze {
 
   getCurrentUnvisitedNeighbours(cell) {
     let unvisitedNeighbours = [];
-    let neighbours = this.getCurrentNeighbours(cell);
+    let neighbours = this.getNeighbours(cell);
     neighbours.forEach((neighbour) => {
       if (!neighbour.visited) {
         unvisitedNeighbours.push(neighbour);
       }
     });
     return unvisitedNeighbours;
+  }
+
+  getNonBlockedNeighbours(cell) {
+    let nonBlockedNeighbours = [];
+    let neighbours = this.getNeighbours(cell);
+    neighbours.forEach((neighbour) => {
+      if (!this.isWallBetween(cell, neighbour)) {
+        nonBlockedNeighbours.push(neighbour);
+      }
+    });
+    return nonBlockedNeighbours;
   }
 
   moveToNext() {
@@ -99,6 +112,37 @@ class Maze {
       else {
         first.walls.top = false;
         second.walls.bottom = false;
+      }
+    }
+  }
+
+  isWallBetween(first, second) {
+    let horizontalDirection = first.x - second.x;
+    let verticalDirection;
+
+    if (horizontalDirection) {
+      if (horizontalDirection === -1) {
+        if (first.walls.right) {
+          return true;
+        }
+      }
+      else {
+        if (first.walls.left) {
+          return true;
+        }
+      }
+    }
+    else {
+      verticalDirection = first.y - second.y;
+      if (verticalDirection === -1) {
+        if (first.walls.bottom) {
+          return true;
+        }
+      }
+      else {
+        if (first.walls.top) {
+          return true;
+        }
       }
     }
   }

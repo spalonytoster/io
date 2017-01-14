@@ -1,16 +1,21 @@
 // jshint esversion: 6
 let maze;
+let aStar;
 
 function setup() {
   createCanvas(400, 400);
-  let size = 40;
+
+  let size = 10;
   let cols = floor(width/size);
   let rows = floor(height/size);
+
   maze = new Maze(cols, rows, size);
   maze.generate();
-  emptyMaze(maze);
+  // emptyMaze(maze);
   maze.setStart(0, 0);
   maze.setEnd(cols-1, rows-1);
+
+  aStar = new AStar(maze);
 }
 
 function draw() {
@@ -20,7 +25,26 @@ function draw() {
       cell.show();
     });
   });
-  noLoop();
+  if (aStar.openSet.length > 0) {
+    aStar.nextStep();
+  }
+
+  aStar.closedSet.forEach((cell) => {
+    cell.show([255, 0, 0]);
+  });
+
+  aStar.openSet.forEach((cell) => {
+    cell.show([255, 0, 0]);
+  });
+
+  if (aStar.current === aStar.maze.end) {
+    let previous = aStar.current.previous;
+    while (previous) {
+      previous.show([0, 0, 255]);
+      previous = previous.previous;
+    }
+    noLoop();
+  }
 }
 
 function emptyMaze(maze) {
