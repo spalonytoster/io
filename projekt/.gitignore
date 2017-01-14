@@ -4,3 +4,4 @@ npm-debug.log
 
 # project specific
 app/assets
+app/lib
