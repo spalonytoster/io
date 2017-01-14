@@ -21,10 +21,10 @@ class Cell {
     let size = this.size;
     let x = this.x * size;
     let y = this.y * size;
-    stroke(255);
+    stroke(0);
 
     if (this.walls.top) {
-      line(x, y, x+size, y );
+      line(x, y, x+size, y);
     }
     if (this.walls.right) {
       line(x+size, y, x+size, y+size);
@@ -36,11 +36,13 @@ class Cell {
       line(x, y, x, y+size);
     }
 
-    if (this.visited) {
-      noStroke();
-      fill(255, 0, 255, 100);
-      rect(x, y, size, size);
-    }
+    // size = size - 2;
+
+    // if (this.visited) {
+    //   noStroke();
+    //   fill(255, 0, 255, 100);
+    //   rect(x, y, size, size);
+    // }
 
     if (color) {
       noStroke();
@@ -50,13 +52,13 @@ class Cell {
 
     if (this.isStart) {
       noStroke();
-      fill(0, 0, 255, 100);
+      fill(0, 255, 0, 100);
       rect(x, y, size, size);
     }
 
     if (this.isEnd) {
       noStroke();
-      fill(255, 0, 0, 100);
+      fill(0, 255, 0, 100);
       rect(x, y, size, size);
     }
   }
