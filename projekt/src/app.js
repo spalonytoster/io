@@ -1,82 +1,121 @@
 // jshint esversion: 6
+let aStarSketch, geneticSketch;
 let maze;
-let aStar;
-let cellSize = 40
+let cellSize;
 
-function setup() {
-  createCanvas(400, 400);
-  // frameRate(10);
+let sketchHeight, sketchWidth;
+let rows, cols;
 
-  let cols = floor(width/cellSize);
-  let rows = floor(height/cellSize);
+$(() => {
+  // initialization
+  sketchHeight = Number.parseInt($('#controls #sketch-height').val(), 10);
+  sketchWidth = Number.parseInt($('#controls #sketch-width').val(), 10);
+  cellSize = Number.parseInt($('#controls #cell-size').val(), 10);
+
+  rows = Math.floor(sketchHeight / cellSize);
+  cols = Math.floor(sketchWidth / cellSize);
 
   maze = new Maze(cols, rows, cellSize);
   maze.generate();
   // emptyMaze(maze);
   maze.setStart(0, 0);
-  maze.setEnd(cols-1, rows-1);
+  maze.setEnd(cols - 1, rows - 1);
 
-  aStar = new AStar(maze);
-}
+  // A*
+  let aStarSketchFun = (p) => {
+    let aStar;
+    p.setup = () => {
+      p.createCanvas(400, 400);
+      // p.frameRate(10);
+      let aStarMaze = new Maze(cols, rows, cellSize);
+      copyFromMaze(maze, aStarMaze);
+      aStarMaze.setStart(0, 0);
+      aStarMaze.setEnd(cols - 1, rows - 1);
+      aStarMaze.injectSketch(p);
+      aStar = new AStar(aStarMaze);
+    };
 
-function draw() {
-  background(200);
+    p.draw = () => {
+      p.background(200);
 
-  drawCells(aStar.maze);
+      drawCells(aStar.maze);
 
-  if (aStar.openSet.length > 0) {
-    aStar.nextStep();
-  }
+      if (aStar.openSet.length > 0) {
+        aStar.nextStep();
+      }
 
-  aStar.closedSet.forEach((cell) => {
-    cell.show([255, 0, 0]);
-  });
+      aStar.closedSet.forEach((cell) => {
+        cell.show([255, 0, 0]);
+      });
 
-  aStar.openSet.forEach((cell) => {
-    cell.show([0, 255, 0]);
-  });
+      aStar.openSet.forEach((cell) => {
+        cell.show([0, 255, 0]);
+      });
 
-  if (aStar.current === aStar.maze.end) {
-    background(200);
-    drawCells(aStar.maze);
-    let path = [];
-    let previous = aStar.current.previous;
-    while (previous) {
-      path.push(previous);
-      previous = previous.previous;
-    }
-    drawPath(path);
-    noLoop();
-  }
-}
+      if (aStar.current === aStar.maze.end) {
+        p.background(200);
+        drawCells(aStar.maze);
+        let path = [];
+        let previous = aStar.current.previous;
+        while (previous) {
+          path.push(previous);
+          previous = previous.previous;
+        }
+        drawPath(path, cellSize, p);
+        p.noLoop();
+      }
+    };
+  };
+  aStarSketch = new p5(aStarSketchFun, 'astar');
+  aStarSketch._loop = false;
 
-function emptyMaze(maze) {
-  maze.cells.forEach((row) => {
-    row.forEach((cell) => {
-      cell.walls.top = false;
-      cell.walls.right = false;
-      cell.walls.bottom = false;
-      cell.walls.left = false;
-    });
-  });
-}
+  // Genetic
+  let geneticSketchFun = (p) => {
+    let aStar;
+    p.setup = () => {
+      p.createCanvas(400, 400);
+      // p.frameRate(10);
 
-function drawPath(path) {
-  let w = cellSize;
-  noFill();
-  stroke(255, 0, 0, 100);
-  strokeWeight(w / 2);
-  beginShape();
-  path.forEach((elt) => {
-    vertex(elt.x * w + w / 2, elt.y * w + w / 2);
-  });
-  endShape();
-}
+      let geneticMaze = new Maze(cols, rows, cellSize);
+      copyFromMaze(maze, geneticMaze);
+      geneticMaze.setStart(0, 0);
+      geneticMaze.setEnd(cols - 1, rows - 1);
+      geneticMaze.injectSketch(p);
+      aStar = new AStar(geneticMaze);
+    };
 
-function drawCells(maze) {
-  maze.cells.forEach((row) => {
-    row.forEach((cell) => {
-      cell.show();
-    });
-  });
-}
+    p.draw = () => {
+      p.background(200);
+
+      drawCells(aStar.maze);
+
+      if (aStar.openSet.length > 0) {
+        aStar.nextStep();
+      }
+
+      aStar.closedSet.forEach((cell) => {
+        cell.show([255, 0, 0]);
+      });
+
+      aStar.openSet.forEach((cell) => {
+        cell.show([0, 255, 0]);
+      });
+
+      if (aStar.current === aStar.maze.end) {
+        p.background(200);
+        drawCells(aStar.maze);
+        let path = [];
+        let previous = aStar.current.previous;
+        while (previous) {
+          path.push(previous);
+          previous = previous.previous;
+        }
+        drawPath(path, cellSize, p);
+        p.noLoop();
+      }
+    };
+  };
+
+  geneticSketch = new p5(geneticSketchFun, 'genetic');
+  geneticSketch._loop = false;
+});

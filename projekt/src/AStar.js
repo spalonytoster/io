@@ -3,7 +3,6 @@
 class AStar {
   constructor(maze) {
     this.maze = maze;
-    this.current;
     this.closedSet = [];
     this.openSet = [maze.start];
     maze.start.gScore = 0;
@@ -16,11 +15,7 @@ class AStar {
 
   distanceBetween(a, b) {
     // return dist(a.i, a.j, b.i, b.j); // euclidean metric
-    return abs(a.x - b.x) + abs(a.y - b.y); // taxi cab metrix
-  }
-
-  reconstructPath() {
-    console.log(this.current);
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // taxi cab metrix
   }
 
   nextStep() {

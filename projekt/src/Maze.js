@@ -2,7 +2,8 @@
 // import Cell from './Cell.js';
 
 class Maze {
-  constructor(cols, rows, cellSize) {
+  constructor(cols, rows, cellSize, sketch) {
+    this.sketch = sketch;
     this.cols = cols;
     this.rows = rows;
     this.cells = [];
@@ -13,7 +14,7 @@ class Maze {
     for (let y = 0; y < this.rows; y++) {
       let row = [];
       for (let x = 0; x < this.cols; x++) {
-        let cell = new Cell(x, y, this.cellSize);
+        let cell = new Cell(x, y, this.cellSize, this.sketch);
         row.push(cell);
       }
       this.cells.push(row);
@@ -23,6 +24,15 @@ class Maze {
     this.current.visited = true;
     this.current.isCurrent = true;
     this.stack.push(this.current);
+  }
+
+  injectSketch(sketch) {
+    console.log(this);
+    this.cells.forEach((row) => {
+      row.forEach((cell) => {
+        cell.sketch = sketch;
+      });
+    });
   }
 
   getNeighbours(cell) {
@@ -76,7 +86,7 @@ class Maze {
       this.current = this.stack.pop();
       return true;
     }
-    let index = floor(random(0, availableCells.length));
+    let index = Math.floor(randomNumberBetween(0, availableCells.length-1));
     let nextCell = availableCells[index];
 
     this.removeWallsBetween(this.current, nextCell);
