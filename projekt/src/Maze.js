@@ -27,7 +27,6 @@ class Maze {
   }
 
   injectSketch(sketch) {
-    console.log(this);
     this.cells.forEach((row) => {
       row.forEach((cell) => {
         cell.sketch = sketch;

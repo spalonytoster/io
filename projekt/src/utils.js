@@ -42,15 +42,16 @@ function run() {
 }
 
 function copyFromMaze(oldMaze, newMaze) {
-  newMaze.cells = oldMaze.cells.slice();
-  // let rows = [];
-  // oldMaze.cells.forEach((row) => {
-  //   let newRow = [];
-  //   rows.forEach((c) => {
-  //     let newCell = new Cell(c.x, c.y, c.size);
-  //     row.push(newCell);
-  //   });
-  //   rows.push(newRow);
-  // });
-  // newMaze.cells = rows;
+  // newMaze.cells = oldMaze.cells.slice();
+  let rows = [];
+  oldMaze.cells.forEach((row) => {
+    let newRow = [];
+    row.forEach((c) => {
+      let newCell = new Cell(c.x, c.y, c.size);
+      newCell.walls = jQuery.extend({}, c.walls);
+     newRow.push(newCell);
+    });
+    rows.push(newRow);
+  });
+  newMaze.cells = rows;
 }

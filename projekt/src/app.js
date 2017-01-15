@@ -29,6 +29,7 @@ $(() => {
       // p.frameRate(10);
       let aStarMaze = new Maze(cols, rows, cellSize);
       copyFromMaze(maze, aStarMaze);
+      // aStarMaze.generate();
       aStarMaze.setStart(0, 0);
       aStarMaze.setEnd(cols - 1, rows - 1);
       aStarMaze.injectSketch(p);
@@ -78,6 +79,7 @@ $(() => {
 
       let geneticMaze = new Maze(cols, rows, cellSize);
       copyFromMaze(maze, geneticMaze);
+      // geneticMaze.generate();
       geneticMaze.setStart(0, 0);
       geneticMaze.setEnd(cols - 1, rows - 1);
       geneticMaze.injectSketch(p);
