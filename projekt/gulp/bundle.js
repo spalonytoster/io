@@ -8,6 +8,7 @@ gulp.task('bundle', () => {
     'node_modules/p5/lib/p5.js',
     'node_modules/jquery/dist/jquery.js',
     'node_modules/lodash/lodash.js',
+    'node_modules/genetic-js/lib/genetic.js'
   ];
 
   gulp.src(libs)

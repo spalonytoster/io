@@ -35,14 +35,14 @@ function randomNumberBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function run() {
-  for (let i = 0; i < arguments.length; i++) {
-    arguments[i].loop();
-  }
+function run(aStarSketch, geneticSketch) {
+  aStarSketch.loop();
+
+  // geneticSketch.loop();
+  genAlg.run();
 }
 
 function copyFromMaze(oldMaze, newMaze) {
-  // newMaze.cells = oldMaze.cells.slice();
   let rows = [];
   oldMaze.cells.forEach((row) => {
     let newRow = [];

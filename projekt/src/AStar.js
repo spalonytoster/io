@@ -15,7 +15,7 @@ class AStar {
 
   distanceBetween(a, b) {
     // return dist(a.i, a.j, b.i, b.j); // euclidean metric
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // taxi cab metrix
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // taxi cab metric
   }
 
   nextStep() {

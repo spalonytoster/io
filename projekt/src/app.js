@@ -6,6 +6,10 @@ let cellSize;
 let sketchHeight, sketchWidth;
 let rows, cols;
 
+let genAlg;
+
+// TODO: przycisk reset
+
 $(() => {
   // initialization
   sketchHeight = Number.parseInt($('#controls #sketch-height').val(), 10);
@@ -29,7 +33,6 @@ $(() => {
       // p.frameRate(10);
       let aStarMaze = new Maze(cols, rows, cellSize);
       copyFromMaze(maze, aStarMaze);
-      // aStarMaze.generate();
       aStarMaze.setStart(0, 0);
       aStarMaze.setEnd(cols - 1, rows - 1);
       aStarMaze.injectSketch(p);
@@ -42,6 +45,7 @@ $(() => {
       drawCells(aStar.maze);
 
       if (aStar.openSet.length > 0) {
+        // source of algorithm progress
         aStar.nextStep();
       }
 
@@ -72,49 +76,24 @@ $(() => {
 
   // Genetic
   let geneticSketchFun = (p) => {
-    let aStar;
     p.setup = () => {
       p.createCanvas(400, 400);
       // p.frameRate(10);
 
       let geneticMaze = new Maze(cols, rows, cellSize);
       copyFromMaze(maze, geneticMaze);
-      // geneticMaze.generate();
       geneticMaze.setStart(0, 0);
       geneticMaze.setEnd(cols - 1, rows - 1);
       geneticMaze.injectSketch(p);
-      aStar = new AStar(geneticMaze);
+      genAlg = new GenAlg(geneticMaze, p);
+      genAlg.init();
     };
 
     p.draw = () => {
       p.background(200);
+      drawCells(genAlg.maze);
 
-      drawCells(aStar.maze);
-
-      if (aStar.openSet.length > 0) {
-        aStar.nextStep();
-      }
-
-      aStar.closedSet.forEach((cell) => {
-        cell.show([255, 0, 0]);
-      });
-
-      aStar.openSet.forEach((cell) => {
-        cell.show([0, 255, 0]);
-      });
-
-      if (aStar.current === aStar.maze.end) {
-        p.background(200);
-        drawCells(aStar.maze);
-        let path = [];
-        let previous = aStar.current.previous;
-        while (previous) {
-          path.push(previous);
-          previous = previous.previous;
-        }
-        drawPath(path, cellSize, p);
-        p.noLoop();
-      }
+      p.noLoop();
     };
   };
 
