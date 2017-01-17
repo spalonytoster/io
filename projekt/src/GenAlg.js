@@ -6,6 +6,9 @@ const DIRECTION = {
   left: 'L'
 };
 
+let globalCurrent;
+let lastDirection;
+
 class GenAlg {
   constructor(maze, sketch) {
     this.maze = maze;
@@ -20,136 +23,221 @@ class GenAlg {
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 4000,
-      size: 250,
+      iterations: 1,
+      size: 1,
       crossover: 0.3,
       mutation: 0.3,
-      skip: 20
+      skip: 0,
+      webWorkers: false
     };
 
-    genetic.seed = () => {
+    genetic.seed = function() {
       let cols = this.userData.maze.cols;
       let rows = this.userData.maze.rows;
-      // maximum chromosome length will be the amount of cells in the maze
-      let chromosomeLength = this.random(cols * rows);
-      let chromosome = [];
+      // maximum entity length will be the amount of cells in the maze
+      let chromosomeLength = 10; //cols*rows; //random(cols * rows);
+      let entity = [];
       for (let i = 0; i < chromosomeLength; i++) {
-        chromosome.push(this.randomDirection());
+        entity.push(randomDirection());
       }
-      return chromosome;
+      return entity;
     };
 
-    genetic.mutate = (chromosome) => {
-      let replaceAt = (str, index, character) => {
-        return str.substr(0, index) + character + str.substr(index + character.length);
+    genetic.mutate = function(entity) {
+      let replaceAt = (arr, index, character) => {
+        arr[index] = character;
+        return arr;
       };
-      let index = this.random(chromosome.length);
-      return replaceAt(entity, index, this.randomDirection());
+      let index = random(entity.length);
+      return replaceAt(entity, index, randomDirection());
     };
 
     genetic.crossover = function(mother, father) {
     	// two-point crossover
+      // https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#Two-point_crossover
     	var len = mother.length;
-    	var ca = this.random(len);
-    	var cb = this.random(len);
+    	var ca = random(len);
+    	var cb = random(len);
     	if (ca > cb) {
     		let tmp = cb;
     		cb = ca;
     		ca = tmp;
     	}
 
-    	let son = father.substr(0, ca) + mother.substr(ca, cb-ca) + father.substr(cb);
-    	let daughter = mother.substr(0, ca) + father.substr(ca, cb-ca) + mother.substr(cb);
+      let son = father.slice(0, ca).concat(mother.slice(ca, cb)).concat(father.slice(cb, father.length));
+      let daughter = mother.slice(0, ca).concat(father.slice(ca, cb)).concat(mother.slice(cb, mother.length));
 
     	return [son, daughter];
     };
 
-    genetic.fitness = (chromosome) => {
+    genetic.fitness = function(entity) {
       let maze = this.userData.maze;
-      let cells = maze.cells;
-      let fitness = Infinity;
       let current = maze.start;
-    	chromosome.forEach((move) => {
-        if (!this.isOutOfBounds(current, after, maze)) {
-          let afterMove = this.makeMove(current, move, maze);
-          if (!maze.isWallBetween(current, afterMove)) {
+      let fitness = distance(current, maze.end);
+    	entity.forEach((move, index) => {
+        if (!isMoveOutOfBounds(current, move, maze)) {
+          let afterMove = makeMove(current, move, maze);
+          if (!isWallBetween(current, afterMove)) {
+            console.log('not blocked by a wall');
+            console.log(afterMove);
             current = afterMove;
-            fitness = this.distance(current, maze.end);
+            fitness = distance(current, maze.end);
+            if (fitness === 0.0) {
+              return;
+            }
+          }
+          else {
+            return;
           }
         }
+        else {
+          return;
+        }
       });
+      globalCurrent = current;
+      console.log(fitness);
       return fitness;
     };
 
-    genetic.generation = (pop, generation, stats) => {
+    genetic.generation = function(pop, generation, stats) {
     	// stop running once we've reached the solution
-      return this.distance(this.furthestPoint(pop[0].chromosome)) !== 0.0;
+      return distance(globalCurrent, this.userData.maze.end) !== 0.0;
     };
 
     genetic.notification = function(pop, generation, stats, isFinished) {
-      // todo
+      let notificationDebug = {
+      		pop: pop,
+      		generation: generation,
+      		stats: stats,
+      		isFinished: isFinished
+      	};
+      	console.log(notificationDebug);
     };
   }
 
   run() {
+    let rows = [];
+    this.maze.cells.forEach((row) => {
+      let newRow = [];
+      row.forEach((c) => {
+        let newCell = new Cell(c.x, c.y, c.size);
+        newCell.walls = jQuery.extend({}, c.walls);
+        newRow.push(newCell);
+      });
+      rows.push(newRow);
+    });
+
+    let start = new Cell(this.maze.start.x, this.maze.start.y, this.maze.start.size);
+    start.walls = jQuery.extend({}, this.maze.start.walls);
+    let end = new Cell(this.maze.end.x, this.maze.end.y, this.maze.end.size);
+    end.walls = jQuery.extend({}, this.maze.end.walls);
+
     let userData = {
-      maze: this.maze
+      maze: {
+        cells: rows,
+        cols: this.maze.cols,
+        rows: this.maze.rows,
+        start: start,
+        end: end
+      }
     };
-    // TODO; najprawdopodobniej trzeba przekazywac obiekt parsowalny do jsona
     this.genetic.evolve(this.config, userData);
   }
+}
 
-  random(num) {
-    return Math.floor(Math.random() * num);
+function random(num) {
+  return Math.floor(Math.random() * num);
+}
+
+function randomDirection() {
+  let currentRandom = _.sample(DIRECTION);
+  while (currentRandom === oppositeTo(lastDirection)) {
+    currentRandom = _.sample(DIRECTION);
   }
+  lastDirection = currentRandom;
+  console.log(currentRandom);
+  return currentRandom;
+}
 
-  randomDirection() {
-    return _.sample(DIRECTION);
+function distance(a, b) {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // taxi cab metric
+}
+
+function makeMove(cell, move, maze) {
+  let x = cell.x;
+  let y = cell.y;
+  if (move === DIRECTION.up) {
+    y--;
   }
-
-  distance(a, b) {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // taxi cab metric
+  if (move === DIRECTION.down) {
+    y++;
   }
-
-  furthestPoint(chromosome) {
-    let result = {
-      x: 0,
-      y: 0
-    };
-    return result;
+  if (move === DIRECTION.left) {
+    x--;
   }
-
-  makeMove(cell, move, maze) {
-    let x = cell.x;
-    let y = cell.y;
-    if (move === DIRECTION.up) {
-      y--;
-    }
-    if (move === DIRECTION.down) {
-      y++;
-    }
-    if (move === DIRECTION.left) {
-      x--;
-    }
-    if (move === DIRECTION.right) {
-      x++;
-    }
-    return maze.cells[x][y];
+  if (move === DIRECTION.right) {
+    x++;
   }
+  return maze.cells[x][y];
+}
 
-  isMoveOutOfBounds(cell, move, maze) {
-    if (move === DIRECTION.up && cell.y-1 < 0) {
-      return true;
+function isMoveOutOfBounds(cell, move, maze) {
+  if (move === DIRECTION.up && cell.y-1 < 0) {
+    return true;
+  }
+  if (move === DIRECTION.down && cell.y+1 >= maze.rows) {
+    return true;
+  }
+  if (move === DIRECTION.left && cell.x-1 < 0) {
+    return true;
+  }
+  if (move === DIRECTION.up && cell.x+1 >= maze.cols) {
+    return true;
+  }
+}
+
+function isWallBetween(first, second) {
+  let horizontalDirection = first.x - second.x;
+  let verticalDirection;
+
+  if (horizontalDirection) {
+    if (horizontalDirection === -1) {
+      if (first.walls.right) {
+        return true;
+      }
     }
-    if (move === DIRECTION.down && cell.y+1 >= maze.rows) {
-      return true;
-    }
-    if (move === DIRECTION.left && cell.x-1 < 0) {
-      return true;
-    }
-    if (move === DIRECTION.up && cell.x+1 >= maze.cols) {
-      return true;
+    else {
+      if (first.walls.left) {
+        return true;
+      }
     }
   }
+  else {
+    verticalDirection = first.y - second.y;
+    if (verticalDirection === -1) {
+      if (first.walls.bottom) {
+        return true;
+      }
+    }
+    else {
+      if (first.walls.top) {
+        return true;
+      }
+    }
+  }
+}
 
+function oppositeTo(direction) {
+  if (DIRECTION.up === DIRECTION) {
+    return DIRECTION.down;
+  }
+  if (DIRECTION.down === DIRECTION) {
+    return DIRECTION.up;
+  }
+  if (DIRECTION.left === DIRECTION) {
+    return DIRECTION.right;
+  }
+  if (DIRECTION.right === DIRECTION) {
+    return DIRECTION.down;
+  }
 }

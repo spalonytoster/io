@@ -13,7 +13,7 @@ gulp.task('bundle', () => {
 
   gulp.src(libs)
     .pipe(sourcemaps.init())
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('app/lib'));
 });
