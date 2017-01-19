@@ -23,11 +23,11 @@ class GenAlg {
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 1,
-      size: 1,
+      iterations: 2000,
+      size: 250,
       crossover: 0.3,
       mutation: 0.3,
-      skip: 0,
+      skip: 2000,
       webWorkers: false
     };
 
@@ -35,7 +35,7 @@ class GenAlg {
       let cols = this.userData.maze.cols;
       let rows = this.userData.maze.rows;
       // maximum entity length will be the amount of cells in the maze
-      let chromosomeLength = 10; //cols*rows; //random(cols * rows);
+      let chromosomeLength = cols*rows; //random(cols * rows);
       let entity = [];
       for (let i = 0; i < chromosomeLength; i++) {
         entity.push(randomDirection());
@@ -70,34 +70,7 @@ class GenAlg {
     	return [son, daughter];
     };
 
-    genetic.fitness = function(entity) {
-      let maze = this.userData.maze;
-      let current = maze.start;
-      let fitness = distance(current, maze.end);
-    	entity.forEach((move, index) => {
-        if (!isMoveOutOfBounds(current, move, maze)) {
-          let afterMove = makeMove(current, move, maze);
-          if (!isWallBetween(current, afterMove)) {
-            console.log('not blocked by a wall');
-            console.log(afterMove);
-            current = afterMove;
-            fitness = distance(current, maze.end);
-            if (fitness === 0.0) {
-              return;
-            }
-          }
-          else {
-            return;
-          }
-        }
-        else {
-          return;
-        }
-      });
-      globalCurrent = current;
-      console.log(fitness);
-      return fitness;
-    };
+    genetic.fitness = fitness;
 
     genetic.generation = function(pop, generation, stats) {
     	// stop running once we've reached the solution
@@ -112,6 +85,9 @@ class GenAlg {
       		isFinished: isFinished
       	};
       	console.log(notificationDebug);
+        let chromosome = pop[0].entity;
+        console.log(pop[0].fitness);
+        // drawPath
     };
   }
 
@@ -155,7 +131,6 @@ function randomDirection() {
     currentRandom = _.sample(DIRECTION);
   }
   lastDirection = currentRandom;
-  console.log(currentRandom);
   return currentRandom;
 }
 
@@ -178,7 +153,7 @@ function makeMove(cell, move, maze) {
   if (move === DIRECTION.right) {
     x++;
   }
-  return maze.cells[x][y];
+  return maze.cells[y][x];
 }
 
 function isMoveOutOfBounds(cell, move, maze) {
@@ -191,7 +166,7 @@ function isMoveOutOfBounds(cell, move, maze) {
   if (move === DIRECTION.left && cell.x-1 < 0) {
     return true;
   }
-  if (move === DIRECTION.up && cell.x+1 >= maze.cols) {
+  if (move === DIRECTION.right && cell.x+1 >= maze.cols) {
     return true;
   }
 }
@@ -228,16 +203,44 @@ function isWallBetween(first, second) {
 }
 
 function oppositeTo(direction) {
-  if (DIRECTION.up === DIRECTION) {
+  if (DIRECTION.up === direction) {
     return DIRECTION.down;
   }
-  if (DIRECTION.down === DIRECTION) {
+  if (DIRECTION.down === direction) {
     return DIRECTION.up;
   }
-  if (DIRECTION.left === DIRECTION) {
+  if (DIRECTION.left === direction) {
     return DIRECTION.right;
   }
-  if (DIRECTION.right === DIRECTION) {
-    return DIRECTION.down;
+  if (DIRECTION.right === direction) {
+    return DIRECTION.left;
   }
+}
+
+function fitness(entity) {
+  let current = maze.start;
+  let fitnessValue = distance(current, maze.end);
+  for (let i = 0; i < entity.length; i++) {
+    let move = entity[i];
+    if (!isMoveOutOfBounds(current, move, maze)) {
+      let afterMove = makeMove(current, move, maze);
+      if (!isWallBetween(current, afterMove)) {
+        // console.log('not blocked by a wall');
+        // console.log(afterMove);
+        current = afterMove;
+        fitnessValue = distance(current, maze.end);
+        if (fitnessValue === 0) {
+          break;
+        }
+      }
+      else {
+        break;
+      }
+    }
+    else {
+      break;
+    }
+  }
+  globalCurrent = current;
+  return fitnessValue;
 }

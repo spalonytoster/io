@@ -8,8 +8,6 @@ let rows, cols;
 
 let genAlg;
 
-// TODO: przycisk reset
-
 $(() => {
   // initialization
   sketchHeight = Number.parseInt($('#controls #sketch-height').val(), 10);
@@ -66,6 +64,7 @@ $(() => {
           path.push(previous);
           previous = previous.previous;
         }
+        path.unshift(aStar.maze.end);
         drawPath(path, cellSize, p);
         p.noLoop();
       }
