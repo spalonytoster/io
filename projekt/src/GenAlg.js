@@ -23,11 +23,11 @@ class GenAlg {
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 2000,
+      iterations: 4000,
       size: 250,
       crossover: 0.3,
       mutation: 0.3,
-      skip: 2000,
+      skip: 10000,
       webWorkers: false
     };
 
@@ -35,7 +35,9 @@ class GenAlg {
       let cols = this.userData.maze.cols;
       let rows = this.userData.maze.rows;
       // maximum entity length will be the amount of cells in the maze
-      let chromosomeLength = cols*rows; //random(cols * rows);
+      // let chromosomeLength = random(cols * rows);
+      // let chromosomeLength = cols-1 + rows;
+      let chromosomeLength = cols * rows;
       let entity = [];
       for (let i = 0; i < chromosomeLength; i++) {
         entity.push(randomDirection());
@@ -73,8 +75,9 @@ class GenAlg {
     genetic.fitness = fitness;
 
     genetic.generation = function(pop, generation, stats) {
+      console.log('generation: ', generation);
     	// stop running once we've reached the solution
-      return distance(globalCurrent, this.userData.maze.end) !== 0.0;
+      // return distance(globalCurrent, this.userData.maze.end) !== 0;
     };
 
     genetic.notification = function(pop, generation, stats, isFinished) {
@@ -84,10 +87,11 @@ class GenAlg {
       		stats: stats,
       		isFinished: isFinished
       	};
-      	console.log(notificationDebug);
-        let chromosome = pop[0].entity;
+        console.log(pop[0].entity);
         console.log(pop[0].fitness);
-        // drawPath
+        if (isFinished) {
+          drawPath(chromosomeToPath(pop[0].entity), maze.start.size, geneticSketch);
+        }
     };
   }
 
@@ -218,29 +222,23 @@ function oppositeTo(direction) {
 }
 
 function fitness(entity) {
+  let path = chromosomeToPath(entity);
+  return distance(_.last(path), maze.end);
+}
+
+function chromosomeToPath(chromosome) {
   let current = maze.start;
-  let fitnessValue = distance(current, maze.end);
-  for (let i = 0; i < entity.length; i++) {
-    let move = entity[i];
-    if (!isMoveOutOfBounds(current, move, maze)) {
-      let afterMove = makeMove(current, move, maze);
-      if (!isWallBetween(current, afterMove)) {
-        // console.log('not blocked by a wall');
-        // console.log(afterMove);
-        current = afterMove;
-        fitnessValue = distance(current, maze.end);
-        if (fitnessValue === 0) {
-          break;
-        }
-      }
-      else {
-        break;
-      }
-    }
-    else {
-      break;
-    }
+  let path = [new Cell(current.x, current.y, current.size)];
+  for (let i = 0; i < chromosome.length; i++) {
+    let move = chromosome[i];
+    if (isMoveOutOfBounds(current, move, maze)) { break; }
+    let afterMove = makeMove(current, move, maze);
+    if (isWallBetween(current, afterMove)) { break; }
+    let distanceToEnd = distance(current, maze.end);
+    current = afterMove;
+    path.push(new Cell(current.x, current.y, current.size));
+    if (distanceToEnd === 0) { break; }
   }
   globalCurrent = current;
-  return fitnessValue;
+  return path;
 }
