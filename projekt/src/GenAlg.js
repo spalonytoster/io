@@ -18,14 +18,14 @@ class GenAlg {
 
   init() {
     let genetic = this.genetic;
-    genetic.optimize = Genetic.Optimize.Minimize;
+    genetic.optimize = Genetic.Optimize.Maximize;
     genetic.select1 = Genetic.Select1.Tournament2;
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 4000,
-      size: 250,
-      crossover: 0.3,
+      iterations: 2000,
+      size: 500,
+      crossover: 0.7,
       mutation: 0.3,
       skip: 10000,
       webWorkers: false
@@ -35,9 +35,8 @@ class GenAlg {
       let cols = this.userData.maze.cols;
       let rows = this.userData.maze.rows;
       // maximum entity length will be the amount of cells in the maze
-      // let chromosomeLength = random(cols * rows);
       // let chromosomeLength = cols-1 + rows;
-      let chromosomeLength = cols * rows;
+      let chromosomeLength = cols * rows - 1;
       let entity = [];
       for (let i = 0; i < chromosomeLength; i++) {
         entity.push(randomDirection());
@@ -77,7 +76,7 @@ class GenAlg {
     genetic.generation = function(pop, generation, stats) {
       console.log('generation: ', generation);
     	// stop running once we've reached the solution
-      // return distance(globalCurrent, this.userData.maze.end) !== 0;
+      return distance(globalCurrent, this.userData.maze.end) !== 0;
     };
 
     genetic.notification = function(pop, generation, stats, isFinished) {
@@ -207,23 +206,18 @@ function isWallBetween(first, second) {
 }
 
 function oppositeTo(direction) {
-  if (DIRECTION.up === direction) {
-    return DIRECTION.down;
-  }
-  if (DIRECTION.down === direction) {
-    return DIRECTION.up;
-  }
-  if (DIRECTION.left === direction) {
-    return DIRECTION.right;
-  }
-  if (DIRECTION.right === direction) {
-    return DIRECTION.left;
+  switch (direction) {
+    case DIRECTION.up: return DIRECTION.down;
+    case DIRECTION.down: return DIRECTION.up;
+    case DIRECTION.left: return DIRECTION.right;
+    case DIRECTION.right: return DIRECTION.left;
   }
 }
 
 function fitness(entity) {
   let path = chromosomeToPath(entity);
-  return distance(_.last(path), maze.end);
+  // return Math.pow(path.length, 2) + Math.pow(distance(_.last(path), maze.start), 2);
+  return (path.length * 10) * distance(maze.start, _.last(path));
 }
 
 function chromosomeToPath(chromosome) {
