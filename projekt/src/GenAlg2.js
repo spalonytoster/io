@@ -1,6 +1,6 @@
 // jshint esversion: 6
 
-class GenAlg {
+class GenAlg2 {
   constructor(maze, sketch) {
     this.maze = maze;
     this.sketch = sketch;
@@ -16,8 +16,8 @@ class GenAlg {
     this.config = {
       iterations: 1000,
       size: 250,
-      crossover: 0.7,
-      mutation: 0.3,
+      crossover: 0.5,
+      mutation: 0.5,
       skip: 10000,
       webWorkers: false
     };
@@ -45,42 +45,32 @@ class GenAlg {
     };
 
     genetic.crossover = function(mother, father) {
-    	// two-point crossover
-      // https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#Two-point_crossover
-    	var len = mother.length;
-    	var ca = random(len);
-    	var cb = random(len);
-    	if (ca > cb) {
-    		let tmp = cb;
-    		cb = ca;
-    		ca = tmp;
-    	}
+    	// Single-point crossover
+      // https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#Single-point_crossover
+    	let len = mother.length;
+      let splitIndex = Math.floor(len / 2) - 1;
 
-      let son = father.slice(0, ca).concat(mother.slice(ca, cb)).concat(father.slice(cb, father.length));
-      let daughter = mother.slice(0, ca).concat(father.slice(ca, cb)).concat(mother.slice(cb, mother.length));
+      let son = father.slice(0, splitIndex).concat(mother.slice(splitIndex, len));
+      let daughter = mother.slice(0, splitIndex).concat(father.slice(splitIndex, len));
 
     	return [son, daughter];
     };
 
-    genetic.fitness = fitness1;
+    genetic.fitness = fitness2;
 
     genetic.generation = function(pop, generation, stats) {
       console.log('generation: ', generation);
     	// stop running once we've reached the solution
-      return distance(globalCurrent, this.userData.maze.end) !== 0;
+      let paths = chromosomeToPaths(pop[0].entity);
+      return !paths.touch;
     };
 
     genetic.notification = function(pop, generation, stats, isFinished) {
-      let notificationDebug = {
-      		pop: pop,
-      		generation: generation,
-      		stats: stats,
-      		isFinished: isFinished
-      	};
-        console.log(pop[0].entity);
-        console.log(pop[0].fitness);
         if (isFinished) {
-          drawPath(chromosomeToPath(pop[0].entity), maze.start.size, geneticSketch);
+          let paths = chromosomeToPaths(pop[0].entity);
+          console.log(paths);
+          drawPath(paths.head, maze.start.size, geneticSketch2);
+          drawPath(paths.tail, maze.start.size, geneticSketch2);
         }
     };
   }
