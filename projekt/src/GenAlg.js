@@ -10,14 +10,14 @@ class GenAlg {
   init() {
     let genetic = this.genetic;
     genetic.optimize = Genetic.Optimize.Maximize;
-    genetic.select1 = Genetic.Select1.Tournament2;
+    genetic.select1 = Genetic.Select1.Fittest;
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 1000,
+      iterations: 4000,
       size: 250,
-      crossover: 0.7,
-      mutation: 0.3,
+      crossover: 0.5,
+      mutation: 0.5,
       skip: 10000,
       webWorkers: false
     };
