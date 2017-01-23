@@ -23,10 +23,10 @@ class GenAlg {
     genetic.select2 = Genetic.Select2.Tournament2;
 
     this.config = {
-      iterations: 2000,
-      size: 500,
-      crossover: 0.7,
-      mutation: 0.3,
+      iterations: 4000,
+      size: 250,
+      crossover: 0.5,
+      mutation: 0.5,
       skip: 10000,
       webWorkers: false
     };
@@ -54,19 +54,13 @@ class GenAlg {
     };
 
     genetic.crossover = function(mother, father) {
-    	// two-point crossover
-      // https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#Two-point_crossover
-    	var len = mother.length;
-    	var ca = random(len);
-    	var cb = random(len);
-    	if (ca > cb) {
-    		let tmp = cb;
-    		cb = ca;
-    		ca = tmp;
-    	}
+    	// Single-point crossover
+      // https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#Single-point_crossover
+    	let len = mother.length;
+      let splitIndex = Math.floor(len / 2) - 1;
 
-      let son = father.slice(0, ca).concat(mother.slice(ca, cb)).concat(father.slice(cb, father.length));
-      let daughter = mother.slice(0, ca).concat(father.slice(ca, cb)).concat(mother.slice(cb, mother.length));
+      let son = father.slice(0, splitIndex).concat(mother.slice(splitIndex, len));
+      let daughter = mother.slice(0, splitIndex).concat(father.slice(splitIndex, len));
 
     	return [son, daughter];
     };
@@ -76,20 +70,16 @@ class GenAlg {
     genetic.generation = function(pop, generation, stats) {
       console.log('generation: ', generation);
     	// stop running once we've reached the solution
-      return distance(globalCurrent, this.userData.maze.end) !== 0;
+      let paths = chromosomeToPaths(pop[0].entity);
+      return !paths.touch;
     };
 
     genetic.notification = function(pop, generation, stats, isFinished) {
-      let notificationDebug = {
-      		pop: pop,
-      		generation: generation,
-      		stats: stats,
-      		isFinished: isFinished
-      	};
-        console.log(pop[0].entity);
-        console.log(pop[0].fitness);
         if (isFinished) {
-          drawPath(chromosomeToPath(pop[0].entity), maze.start.size, geneticSketch);
+          let paths = chromosomeToPaths(pop[0].entity);
+          console.log(paths);
+          drawPath(paths.head, maze.start.size, geneticSketch);
+          drawPath(paths.tail, maze.start.size, geneticSketch);
         }
     };
   }
@@ -144,17 +134,16 @@ function distance(a, b) {
 function makeMove(cell, move, maze) {
   let x = cell.x;
   let y = cell.y;
-  if (move === DIRECTION.up) {
-    y--;
-  }
-  if (move === DIRECTION.down) {
-    y++;
-  }
-  if (move === DIRECTION.left) {
-    x--;
-  }
-  if (move === DIRECTION.right) {
-    x++;
+
+  switch (move) {
+    case DIRECTION.up: y--;
+      break;
+    case DIRECTION.down: y++;
+      break;
+    case DIRECTION.left: x--;
+      break;
+    case DIRECTION.right: x++;
+      break;
   }
   return maze.cells[y][x];
 }
@@ -215,9 +204,12 @@ function oppositeTo(direction) {
 }
 
 function fitness(entity) {
-  let path = chromosomeToPath(entity);
-  // return Math.pow(path.length, 2) + Math.pow(distance(_.last(path), maze.start), 2);
-  return (path.length * 10) * distance(maze.start, _.last(path));
+  let paths = chromosomeToPaths(entity);
+  if (paths.touch) {
+    return Infinity;
+  }
+  return ((paths.head.length * 10) * distance(_.first(paths.head), _.last(paths.head)) +
+          (paths.tail.length * 10) * distance(_.last(paths.tail), _.first(paths.tail))) / 2;
 }
 
 function chromosomeToPath(chromosome) {
@@ -235,4 +227,58 @@ function chromosomeToPath(chromosome) {
   }
   globalCurrent = current;
   return path;
+}
+
+function chromosomeToPaths(chromosome) {
+  let head = maze.start;
+  let tail = maze.end;
+
+  let paths = {
+    head: [new Cell(head.x, head.y, head.size)],
+    tail: [new Cell(tail.x, tail.y, tail.size)]
+  };
+
+  let headFinished = false;
+  let tailFinished = false;
+
+  for (let i = 0; i < chromosome.length; i++) {
+    if (headFinished && tailFinished) { break; }
+
+    if (!headFinished) {
+      headFinished = true;
+      let move = chromosome[i];
+      if (!isMoveOutOfBounds(head, move, maze)) {
+        let afterMove = makeMove(head, move, maze);
+        if (!isWallBetween(head, afterMove)) {
+          headFinished = false;
+          head = afterMove;
+          paths.head.push(new Cell(head.x, head.y, head.size));
+
+          if (_.last(paths.head) === _.first(paths.tail)) {
+            paths.touch = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!tailFinished) {
+      tailFinished = true;
+      let move = oppositeTo(chromosome[chromosome.length-1 - i]);
+      if (!isMoveOutOfBounds(tail, move, maze)) {
+        let afterMove = makeMove(tail, move, maze);
+        if (!isWallBetween(tail, afterMove)) {
+          tailFinished = false;
+          tail = afterMove;
+          paths.tail.unshift(new Cell(tail.x, tail.y, tail.size));
+
+          if (_.last(paths.head) === _.first(paths.tail)) {
+            paths.touch = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return paths;
 }
