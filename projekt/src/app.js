@@ -1,5 +1,5 @@
 // jshint esversion: 6
-let aStarSketch, geneticSketch;
+let aStarSketch, geneticSketch, geneticSketch2;
 let maze;
 let cellSize;
 
@@ -7,6 +7,7 @@ let sketchHeight, sketchWidth;
 let rows, cols;
 
 let genAlg;
+let genAlg2;
 
 $(() => {
   // initialization
@@ -98,4 +99,30 @@ $(() => {
 
   geneticSketch = new p5(geneticSketchFun, 'genetic');
   geneticSketch._loop = false;
+
+  // Genetic double-path
+  let geneticSketchFun2 = (p) => {
+    p.setup = () => {
+      p.createCanvas(400, 400);
+      // p.frameRate(10);
+
+      let geneticMaze2 = new Maze(cols, rows, cellSize);
+      copyFromMaze(maze, geneticMaze2);
+      geneticMaze2.setStart(0, 0);
+      geneticMaze2.setEnd(cols - 1, rows - 1);
+      geneticMaze2.injectSketch(p);
+      genAlg2 = new GenAlg2(geneticMaze2, p);
+      genAlg2.init();
+    };
+
+    p.draw = () => {
+      p.background(200);
+      drawCells(genAlg2.maze);
+
+      p.noLoop();
+    };
+  };
+
+  geneticSketch2 = new p5(geneticSketchFun2, 'genetic2');
+  geneticSketch2._loop = false;
 });
