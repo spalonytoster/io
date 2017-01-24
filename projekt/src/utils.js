@@ -205,8 +205,12 @@ function chromosomeToPaths(chromosome) {
           head = afterMove;
           paths.head.push(new Cell(head.x, head.y, head.size));
 
-          if (_.last(paths.head) === _.first(paths.tail)) {
+          if (_.includes(paths.tail, _.last(paths.head))) {
             paths.touch = true;
+            break;
+          }
+
+          if (distance(head, maze.end) === 0) {
             break;
           }
         }
@@ -223,8 +227,12 @@ function chromosomeToPaths(chromosome) {
           tail = afterMove;
           paths.tail.unshift(new Cell(tail.x, tail.y, tail.size));
 
-          if (_.last(paths.head) === _.first(paths.tail)) {
+          if (_.includes(paths.head, _.first(paths.tail))) {
             paths.touch = true;
+            break;
+          }
+
+          if (distance(tail, maze.start) === 0) {
             break;
           }
         }
